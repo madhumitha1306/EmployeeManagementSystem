@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Employee Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      padding: 2rem;
+    }
+    .container {
+      background: white;
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    }
+    h2 {
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 0.5rem;
+    }
+    input, button {
+      padding: 0.5rem;
+      margin: 0.5rem 0;
+      width: 100%;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    pre {
+      background: #eee;
+      padding: 1rem;
+      border-radius: 5px;
+      overflow: auto;
+      max-height: 300px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- FETCH BY CUSTOM ID -->
+  <div class="container">
+    <h2>Fetch Dashboard by Custom ID</h2>
+    <input type="text" id="customId" placeholder="Enter Custom ID">
+    <button onclick="getUserById()">Fetch User</button>
+    <pre id="single-user"></pre>
+  </div>
+
+  <!-- CREATE EMPLOYEE -->
+  <div class="container">
+    <h2>Create Employee Profile</h2>
+    <input type="text" id="team" placeholder="Team">
+    <input type="text" id="position" placeholder="Position">
+    <input type="date" id="hire_date">
+    <input type="text" id="location" placeholder="Location">
+    <input type="text" id="salary" placeholder="Salary">
+    <input type="text" id="phone_number" placeholder="Phone Number">
+    <input type="date" id="dob" placeholder="Date of Birth">
+    <button onclick="createEmployee()">Create Employee</button>
+    <pre id="create_result"></pre>
+  </div>
+
+  <!-- UPDATE EMPLOYEE -->
+  <div class="container">
+    <h2>Update Employee Profile</h2>
+    <input type="text" id="update_custom_id" placeholder="Custom ID">
+    <input type="text" id="update_team" placeholder="New Team">
+    <input type="text" id="update_position" placeholder="New Position">
+    <input type="date" id="update_hire_date">
+    <input type="text" id="update_location" placeholder="New Location">
+    <button onclick="updateEmployee()">Update</button>
+    <pre id="update_result"></pre>
+  </div>
+
+  <!-- DELETE USER -->
+  <div class="container">
+    <h2>Delete User</h2>
+    <input type="text" id="delete_custom_id" placeholder="Enter Custom ID">
+    <button onclick="deleteUser()">Delete</button>
+    <pre id="delete_result"></pre>
+  </div>
+
+  <!-- FETCH ALL USERS -->
+  <div class="container">
+    <h2>Fetch All Users (Admin Only)</h2>
+    <button onclick="getAllUsers()">View All</button>
+    <pre id="all-users"></pre>
+  </div>
+
+  <script>
+    const BASE_URL = "http://127.0.0.1:8000";
+
+    function getToken() {
+      return localStorage.getItem("access_token");
+    }
+
+    async function getUserById() {
+      const token = getToken();
+      const id = document.getElementById("customId").value;
+
+      const res = await fetch(`${BASE_URL}/dashboard/${id}`, {
+        headers: { Authorization: token }
+      });
+
+      const data = await res.json();
+      document.getElementById("single-user").innerText = JSON.stringify(data, null, 2);
+    }
+
+    async function createEmployee() {
+      const token = getToken();
+      const body = {
+        team: document.getElementById("team").value,
+        position: document.getElementById("position").value,
+        hire_date: document.getElementById("hire_date").value,
+        location: document.getElementById("location").value,
+        salary: document.getElementById("salary").value,
+        phone_number: document.getElementById("phone_number").value,
+        dob: document.getElementById("dob").value
+      };
+
+      const res = await fetch(`${BASE_URL}/dashboard/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token
+        },
+        body: JSON.stringify(body)
+      });
+
+      const data = await res.json();
+      document.getElementById("create_result").innerText = JSON.stringify(data, null, 2);
+    }
+
+    async function updateEmployee() {
+      const token = getToken();
+      const id = document.getElementById("update_custom_id").value;
+      const body = {
+        team: document.getElementById("update_team").value,
+        position: document.getElementById("update_position").value,
+        hire_date: document.getElementById("update_hire_date").value,
+        location: document.getElementById("update_location").value
+      };
+
+      const res = await fetch(`${BASE_URL}/dashboard/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token
+        },
+        body: JSON.stringify(body)
+      });
+
+      const data = await res.json();
+      document.getElementById("update_result").innerText = JSON.stringify(data, null, 2);
+    }
+
+    async function deleteUser() {
+      const token = getToken();
+      const id = document.getElementById("delete_custom_id").value;
+
+      const res = await fetch(`${BASE_URL}/dashboard/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: token }
+      });
+
+      const data = await res.json();
+      document.getElementById("delete_result").innerText = JSON.stringify(data, null, 2);
+    }
+
+    async function getAllUsers() {
+      const token = getToken();
+
+      const res = await fetch(`${BASE_URL}/dashboard/all`, {
+        headers: { Authorization: token }
+      });
+
+       const data = await res.json();
+      document.getElementById("all-users").innerText = JSON.stringify(data, null, 2);
+    }
+  </script>
+</body>
+</html>
