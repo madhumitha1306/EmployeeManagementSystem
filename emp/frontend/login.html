@@ -125,7 +125,7 @@
           console.log("Result:", result);
   
           // ✅ Store token under correct key and format
-          localStorage.setItem("access_token", `Bearer ${result.access_token}`);
+          localStorage.setItem("access_token", result.details.access_token);
   
           // ✅ Redirect
           window.location.href = "dashboard.html";

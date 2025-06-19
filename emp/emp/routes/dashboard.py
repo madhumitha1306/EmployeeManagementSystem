@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session, joinedload
 from emp.models import user as user_model
 from emp.models import employee as employee_model
 from emp import schemas
+from emp.hashing import Hash
 from emp import database
 from emp.jwt_token import get_current_user
 
@@ -32,7 +33,6 @@ def get_all_dashboards(
 
 
 
-
 # ✅ GET - Fetch user and employee info by custom_id
 @router.get("/{custom_id}", response_model=schemas.DashboardOut)
 def get_dashboard(
@@ -59,23 +59,45 @@ def get_dashboard(
     }
 
 # ✅ POST - Create employee profile (Employee only for their account)
+# ✅ POST - Create employee profile
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def create_employee(
-    employee: schemas.EmployeeCreate,
+def create_user_with_employee(
+    user_data: schemas.UserCreateWithEmployee,
     db: Session = Depends(database.get_db),
     current_user: user_model.User = Depends(get_current_user)
 ):
-    if current_user.employee:
-        raise HTTPException(status_code=400, detail="Employee profile already exists")
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Only admin can create employees.")
 
-    new_employee = employee_model.Employee(**employee.dict(), user_id=current_user.id)
+    # Check for existing user with same email
+    existing_user = db.query(user_model.User).filter(user_model.User.email == user_data.email).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="User with this email already exists.")
+
+    # Create the User
+    new_user = user_model.User(
+        name=user_data.name,
+        email=user_data.email.lower(),
+        password=Hash.bcrypt(user_data.password),
+        role=user_data.role,
+        is_active=True
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    # Create the Employee
+    new_employee = employee_model.Employee(**user_data.employee.dict(), user_id=new_user.id)
     db.add(new_employee)
     db.commit()
     db.refresh(new_employee)
+    new_user.custom_id = f"DTG{new_user.id:03d}"
+    db.commit()
 
     return {
-        "message": "Employee created successfully",
-        "employee": schemas.EmployeeOut.model_validate(new_employee)
+        "message": "User and Employee created successfully",
+        "user_id": new_user.custom_id,
+        "email": new_user.email
     }
 
 # ✅ PUT - Update employee profile (Employee updates self only)

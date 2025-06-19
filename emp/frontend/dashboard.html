@@ -58,13 +58,15 @@
   <!-- CREATE EMPLOYEE -->
   <div class="container">
     <h2>Create Employee Profile</h2>
+    <input type="text" id="name" class="form-control mb-2" placeholder="Name" required>
+    <input type="email" id="email" class="form-control mb-2" placeholder="Email" required>
+    <input type="password" id="password" class="form-control mb-2" placeholder="Password" required>
+    <input type="text" id="role" class="form-control mb-2" placeholder="Role (admin/employee)" required>
     <input type="text" id="team" placeholder="Team">
-    <input type="text" id="position" placeholder="Position">
+    <input type="text" id="positions" placeholder="positions">
     <input type="date" id="hire_date">
-    <input type="text" id="location" placeholder="Location">
-    <input type="text" id="salary" placeholder="Salary">
-    <input type="text" id="phone_number" placeholder="Phone Number">
-    <input type="date" id="dob" placeholder="Date of Birth">
+    <input type="text" id="place" placeholder="place">
+
     <button onclick="createEmployee()">Create Employee</button>
     <pre id="create_result"></pre>
   </div>
@@ -72,7 +74,7 @@
   <!-- UPDATE EMPLOYEE -->
   <div class="container">
     <h2>Update Employee Profile</h2>
-    <input type="text" id="update_custom_id" placeholder="Custom ID">
+    <input type="text" id="update_custom_id" placeholder="Custom ID (Not used)">
     <input type="text" id="update_team" placeholder="New Team">
     <input type="text" id="update_position" placeholder="New Position">
     <input type="date" id="update_hire_date">
@@ -99,8 +101,15 @@
   <script>
     const BASE_URL = "http://127.0.0.1:8000";
 
+    // Get token and add Bearer prefix
     function getToken() {
-      return localStorage.getItem("access_token");
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        alert("Not logged in. Redirecting to login page.");
+        window.location.href = "login.html";
+        return;
+      }
+      return `Bearer ${token}`;
     }
 
     async function getUserById() {
@@ -112,19 +121,25 @@
       });
 
       const data = await res.json();
+      if (!res.ok) {
+        alert(data.detail || "Error fetching user");
+      }
       document.getElementById("single-user").innerText = JSON.stringify(data, null, 2);
     }
 
     async function createEmployee() {
       const token = getToken();
       const body = {
-        team: document.getElementById("team").value,
-        position: document.getElementById("position").value,
-        hire_date: document.getElementById("hire_date").value,
-        location: document.getElementById("location").value,
-        salary: document.getElementById("salary").value,
-        phone_number: document.getElementById("phone_number").value,
-        dob: document.getElementById("dob").value
+        name: document.getElementById("name").value,
+        email: document.getElementById("email").value,
+        password: document.getElementById("password").value,
+        role: document.getElementById("role").value,
+        employee:{
+            team: document.getElementById("team").value,
+            positions: document.getElementById("positions").value,
+            hire_date: document.getElementById("hire_date").value,
+            place: document.getElementById("place").value,
+        }
       };
 
       const res = await fetch(`${BASE_URL}/dashboard/`, {
@@ -137,20 +152,22 @@
       });
 
       const data = await res.json();
+      if (!res.ok) {
+        alert(data.detail || "Error creating employee");
+      }
       document.getElementById("create_result").innerText = JSON.stringify(data, null, 2);
     }
 
     async function updateEmployee() {
       const token = getToken();
-      const id = document.getElementById("update_custom_id").value;
       const body = {
         team: document.getElementById("update_team").value,
-        position: document.getElementById("update_position").value,
+        positions: document.getElementById("update_position").value,
         hire_date: document.getElementById("update_hire_date").value,
-        location: document.getElementById("update_location").value
+        place: document.getElementById("update_location").value
       };
 
-      const res = await fetch(`${BASE_URL}/dashboard/${id}`, {
+      const res = await fetch(`${BASE_URL}/dashboard/`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -160,6 +177,9 @@
       });
 
       const data = await res.json();
+      if (!res.ok) {
+        alert(data.detail || "Error updating employee");
+      }
       document.getElementById("update_result").innerText = JSON.stringify(data, null, 2);
     }
 
@@ -173,6 +193,9 @@
       });
 
       const data = await res.json();
+      if (!res.ok) {
+        alert(data.detail || "Error deleting user");
+      }
       document.getElementById("delete_result").innerText = JSON.stringify(data, null, 2);
     }
 
@@ -183,7 +206,10 @@
         headers: { Authorization: token }
       });
 
-       const data = await res.json();
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.detail || "Error fetching users");
+      }
       document.getElementById("all-users").innerText = JSON.stringify(data, null, 2);
     }
   </script>

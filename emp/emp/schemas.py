@@ -229,3 +229,27 @@ class AuditLogOut(AuditLogBase):
     model_config = {
         "from_attributes": True
     }
+
+class empdetails(BaseModel):
+
+    
+    
+    team:Optional[str]
+    positions: Optional[str]
+    hire_date: Optional[date]
+    place: Optional[str]
+
+    model_config = {
+        "from_attributes" : True
+    }
+
+class UserCreateWithEmployee(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
+    role: str
+    employee: empdetails
+
+    model_config = {
+        "from_attributes": True
+    }
