@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Registration</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      padding: 2rem;
+    }
+    form {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 10px;
+      max-width: 500px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input, select {
+      width: 100%;
+      padding: 0.5rem;
+      margin: 0.75rem 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      padding: 0.75rem;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      width: 100%;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .link {
+      margin-top: 1rem;
+      text-align: center;
+    }
+    .link a {
+      color: #007bff;
+      text-decoration: none;
+    }
+    .link a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h2 style="text-align:center;">Register User</h2>
+  <form id="registerForm">
+    <h4>User Info</h4>
+    <input type="text" name="name" placeholder="Full Name" required />
+    <input type="email" name="email" placeholder="Email" required />
+    <input type="password" name="password" placeholder="Password" required />
+    <input type="text" name="role" placeholder="Role (admin, employee)" required />
+    
+    <h4>Employee Info</h4>
+    <input type="text" name="team" placeholder="Team" required />
+    <input type="text" name="positions" placeholder="Positions" required />
+    <input type="date" name="hire_date" required />
+    <input type="text" name="place" placeholder="Place" required />
+    
+    <button type="submit">Register</button>
+
+    <div class="link">
+      <p>Already have an account? <a href="login.html">Login here</a></p>
+    </div>
+  </form>
+
+  <script>
+    const form = document.getElementById('registerForm');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+      const data = {
+        name: formData.get("name"),
+        email: formData.get("email"),
+        password: formData.get("password"),
+        role: formData.get("role"),
+        employee: {
+          team: formData.get("team"),
+          positions: formData.get("positions"),
+          hire_date: formData.get("hire_date"),
+          place: formData.get("place")
+        }
+      };
+
+      try {
+        const res = await fetch("http://127.0.0.1:8000/users/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await res.json();
+        if (res.ok) {
+          alert("Registration successful! Please login.");
+          window.location.href = "login.html";  // redirect to login page
+        } else {
+          alert(`Error: ${result.detail || "Something went wrong"}`);
+        }
+      } catch (err) {
+        alert("Failed to register. Check console.");
+        console.error(err);
+      }
+    });
+  </script>
+</body>
+</html>
