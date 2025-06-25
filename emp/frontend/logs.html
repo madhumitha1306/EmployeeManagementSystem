@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Audit Logs</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+    }
+
+    .sidebar {
+      width: 250px;
+      background: #fff;
+      height: 100vh;
+      padding: 2rem 1rem;
+      position: fixed;
+      top: 0;
+      left: -250px;
+      overflow-y: auto;
+      z-index: 1000;
+      transition: left 0.3s ease;
+    }
+    .sidebar.active {
+      left: 0;
+    }
+    .sidebar h3 { margin-bottom: 1rem; }
+    .sidebar ul { list-style: none; }
+    .sidebar ul li {
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background 0.2s;
+    }
+    .sidebar ul li:hover { background: #e6e6e6; }
+
+    .main {
+      margin-left: 0;
+      padding: 1rem 2rem;
+      transition: margin-left 0.3s ease;
+    }
+    .sidebar.active ~ .main {
+      margin-left: 250px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #3c335a;
+      color: white;
+      padding: 1rem;
+      border-radius: 10px;
+      position: sticky;
+      top: 0;
+    }
+    .topbar .left-icons i {
+      font-size: 1.25rem;
+      margin-right: 1rem;
+      cursor: pointer;
+    }
+
+    .card-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    .card-button {
+      background: rgb(213, 201, 255);
+      padding: 1.5rem;
+      text-align: center;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+    .card-button:hover {
+      background: #eaf1ff;
+      transform: scale(1.03);
+    }
+
+    .section {
+      margin-top: 2rem;
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      display: none;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 0.75rem;
+      margin: 0.5rem 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    th, td {
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background: #2d323e;
+      color: white;
+    }
+
+    #message {
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar" id="sidebar">
+    <h3>Navigation</h3>
+    <ul>
+      <li onclick="location.href='dashboard.html'">Dashboard</li>
+      <li onclick="location.href='attendance.html'">Attendance</li>
+      <li onclick="location.href='leave_requests.html'">Leave Requests</li>
+      <li onclick="location.href='departments.html'">Departments</li>
+      <li onclick="location.href='salary_slips.html'">Salary Slips</li>
+      <li onclick="location.href='performance_reviews.html'">Performance Reviews</li>
+      <li onclick="location.href='notifications.html'">Notifications</li>
+      <li onclick="location.href='logs.html'">Audit Logs</li>
+    </ul>
+  </div>
+
+  <div class="main" id="mainContent">
+    <div class="topbar">
+      <div class="left-icons">
+        <i class="fa fa-bars" onclick="toggleSidebar()"></i>
+      </div>
+      <div><strong>Audit Logs</strong></div>
+    </div>
+
+    <div class="card-container">
+      <div class="card-button" onclick="toggleSection('createSection')">Create Log</div>
+      <div class="card-button" onclick="toggleSection('fetchUserSection')">Fetch by User ID</div>
+      <div class="card-button" onclick="toggleSection('fetchAllSection'); getAllLogs()">Fetch All Logs</div>
+    </div>
+
+    <div class="section" id="createSection">
+      <h2>Create Log</h2>
+      <form id="createForm">
+        <input id="user_id" placeholder="User ID" required />
+        <input id="action" placeholder="Action (e.g., CREATE)" required />
+        <input id="table_name" placeholder="Table Name" required />
+        <input id="record_id" placeholder="Record ID" required />
+        <button type="submit">Submit</button>
+      </form>
+      <div id="message"></div>
+    </div>
+
+    <div class="section" id="fetchUserSection">
+      <h2>Fetch Logs by User ID</h2>
+      <input id="user_id_fetch" placeholder="User ID" />
+      <button onclick="getLogsByUser()">Fetch</button>
+      <table>
+        <thead>
+          <tr><th>ID</th><th>User ID</th><th>Action</th><th>Table</th><th>Record ID</th><th>Timestamp</th></tr>
+        </thead>
+        <tbody id="userLogsTable"></tbody>
+      </table>
+    </div>
+
+    <div class="section" id="fetchAllSection">
+      <h2>All Audit Logs</h2>
+      <table>
+        <thead>
+          <tr><th>ID</th><th>User ID</th><th>Action</th><th>Table</th><th>Record ID</th><th>Timestamp</th></tr>
+        </thead>
+        <tbody id="allLogsTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const BASE_URL = "http://127.0.0.1:8000";
+
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("active");
+    }
+
+    function toggleSection(id) {
+      document.querySelectorAll(".section").forEach(sec => {
+        sec.style.display = sec.id === id ? "block" : "none";
+      });
+    }
+
+    function getToken() {
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        alert("Please login first.");
+        window.location.href = "login.html";
+      }
+      return `Bearer ${token}`;
+    }
+
+    document.getElementById("createForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const payload = {
+        user_id: document.getElementById("user_id").value,
+        action: document.getElementById("action").value,
+        table_name: document.getElementById("table_name").value,
+        record_id: document.getElementById("record_id").value
+      };
+
+      const res = await fetch(`${BASE_URL}/logs/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: getToken() },
+        body: JSON.stringify(payload)
+      });
+
+      const msg = document.getElementById("message");
+      if (res.ok) {
+        msg.textContent = "✅ Log created successfully!";
+        msg.style.color = "green";
+        e.target.reset();
+      } else {
+        const err = await res.json();
+        msg.textContent = "❌ " + (err.detail || "Error occurred");
+        msg.style.color = "red";
+      }
+    });
+
+    async function getLogsByUser() {
+      const userId = document.getElementById("user_id_fetch").value;
+      const res = await fetch(`${BASE_URL}/logs/${userId}`, {
+        headers: { Authorization: getToken() }
+      });
+
+      const tbody = document.getElementById("userLogsTable");
+      tbody.innerHTML = "";
+
+      if (!res.ok) {
+        tbody.innerHTML = "<tr><td colspan='6'>❌ Error fetching logs</td></tr>";
+        return;
+      }
+
+      const data = await res.json();
+      data.forEach(log => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${log.id}</td>
+            <td>${log.user_id}</td>
+            <td>${log.action}</td>
+            <td>${log.table_name}</td>
+            <td>${log.record_id}</td>
+            <td>${log.timestamp}</td>
+          </tr>`;
+      });
+    }
+
+    async function getAllLogs() {
+      const res = await fetch(`${BASE_URL}/logs/`, {
+        headers: { Authorization: getToken() }
+      });
+
+      const tbody = document.getElementById("allLogsTable");
+      tbody.innerHTML = "";
+
+      if (!res.ok) {
+        tbody.innerHTML = "<tr><td colspan='6'>❌ Error fetching all logs</td></tr>";
+        return;
+      }
+
+      const data = await res.json();
+      data.forEach(log => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${log.id}</td>
+            <td>${log.user_id}</td>
+            <td>${log.action}</td>
+            <td>${log.table_name}</td>
+            <td>${log.record_id}</td>
+            <td>${log.timestamp}</td>
+          </tr>`;
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Salary Slips</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .sidebar {
+      width: 250px;
+      background: #fff;
+      height: 100vh;
+      padding: 2rem 1rem;
+      position: fixed;
+      top: 0;
+      left: -250px;
+      overflow-y: auto;
+      z-index: 1000;
+      transition: left 0.3s ease;
+    }
+
+    body.show-sidebar .sidebar {
+      left: 0;
+    }
+
+    body.show-sidebar .main {
+      margin-left: 250px;
+    }
+
+    .sidebar h3 { margin-bottom: 1rem; }
+    .sidebar ul { list-style: none; }
+    .sidebar ul li {
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background 0.2s;
+    }
+
+    .sidebar ul li:hover { background: #e6e6e6; }
+
+    .main {
+      margin-left: 0;
+      padding: 1rem 2rem;
+      transition: margin-left 0.3s ease;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #3c335a;
+      color: white;
+      padding: 1rem;
+      border-radius: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .topbar .left-icons i {
+      font-size: 1.25rem;
+      cursor: pointer;
+    }
+
+    .card-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .card-button {
+      background: rgb(213, 201, 255);
+      padding: 1.5rem;
+      text-align: center;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    .card-button:hover {
+      background: #eaf1ff;
+      transform: scale(1.03);
+    }
+
+    .section {
+      margin-top: 2rem;
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      display: none;
+    }
+
+    .section h3 {
+      margin-bottom: 1rem;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 0.75rem;
+      margin: 0.5rem 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 0.95rem;
+    }
+
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background: #2d323e;
+      color: white;
+    }
+
+    #createResult {
+      margin-top: 0.5rem;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar" id="sidebar">
+    <h3>Navigation</h3>
+    <ul>
+      <li onclick="location.href='dashboard.html'">Dashboard</li>
+      <li onclick="location.href='attendance.html'">Attendance Report</li>
+      <li onclick="location.href='leave_requests.html'">Leave Request</li>
+      <li onclick="location.href='departments.html'">Departments</li>
+      <li onclick="location.href='salary_slips.html'">Salary Slips</li>
+      <li onclick="location.href='performance_reviews.html'">Performance Reviews</li>
+      <li onclick="location.href='notifications.html'">Notifications</li>
+      <li onclick="location.href='logs.html'">Audit Logs</li>
+    </ul>
+  </div>
+
+  <div class="main" id="mainContent">
+    <div class="topbar">
+      <div class="left-icons">
+        <i class="fa fa-bars" onclick="toggleSidebar()"></i>
+      </div>
+      <div><strong>Salary Slips</strong></div>
+    </div>
+
+    <div class="card-container">
+      <div class="card-button" onclick="toggleSection('createSlipSection')">Create Salary Slip</div>
+      <div class="card-button" onclick="toggleSection('fetchSlipSection')">Fetch Slips by Employee</div>
+    </div>
+
+    <!-- Create Salary Slip -->
+    <div class="section" id="createSlipSection">
+      <h3>Create Salary Slip</h3>
+      <form id="createSlipForm">
+        <input id="employee_id" placeholder="Employee ID" required />
+        <input id="month" placeholder="Month (e.g., 2025-06)" required />
+        <input id="basic_salary" type="number" placeholder="Basic Salary" required />
+        <input id="bonus" type="number" placeholder="Bonus" />
+        <input id="deductions" type="number" placeholder="Deductions" />
+        <input id="net_salary" type="number" placeholder="Net Salary" required />
+        <button type="submit">Submit</button>
+      </form>
+      <div id="createResult"></div>
+    </div>
+
+    <!-- Fetch Salary Slips -->
+    <div class="section" id="fetchSlipSection">
+      <h3>Fetch Salary Slips by Employee ID</h3>
+      <input id="fetch_employee_id" placeholder="Employee ID" />
+      <button onclick="fetchSlips()">Fetch</button>
+      <table id="slipTable">
+        <thead>
+          <tr>
+            <th>ID</th><th>Month</th><th>Basic</th><th>Bonus</th><th>Deductions</th><th>Net</th><th>Issued</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const BASE_URL = "http://127.0.0.1:8000";
+
+    function toggleSidebar() {
+      document.body.classList.toggle("show-sidebar");
+    }
+
+    function toggleSection(id) {
+      document.querySelectorAll(".section").forEach(section => {
+        section.style.display = section.id === id ? "block" : "none";
+      });
+    }
+
+    document.getElementById("createSlipForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const token = localStorage.getItem("access_token");
+      const body = {
+        employee_id: document.getElementById("employee_id").value,
+        month: document.getElementById("month").value,
+        basic_salary: parseFloat(document.getElementById("basic_salary").value),
+        bonus: parseFloat(document.getElementById("bonus").value || 0),
+        deductions: parseFloat(document.getElementById("deductions").value || 0),
+        net_salary: parseFloat(document.getElementById("net_salary").value)
+      };
+
+      const res = await fetch(`${BASE_URL}/salary-slips/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(body)
+      });
+
+      const result = await res.json();
+      document.getElementById("createResult").innerText = res.ok
+        ? "✅ Salary slip created successfully!"
+        : "❌ Error: " + (result.detail || "Failed to create.");
+    });
+
+    async function fetchSlips() {
+      const token = localStorage.getItem("access_token");
+      const empId = document.getElementById("fetch_employee_id").value;
+      const res = await fetch(`${BASE_URL}/salary-slips/${empId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const tbody = document.querySelector("#slipTable tbody");
+      tbody.innerHTML = "";
+
+      if (!res.ok) {
+        tbody.innerHTML = "<tr><td colspan='7'>❌ Error fetching slips</td></tr>";
+        return;
+      }
+
+      const data = await res.json();
+      if (data.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='7'>No records found.</td></tr>";
+        return;
+      }
+
+      data.forEach(slip => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${slip.id}</td>
+            <td>${slip.month}</td>
+            <td>${slip.basic_salary}</td>
+            <td>${slip.bonus}</td>
+            <td>${slip.deductions}</td>
+            <td>${slip.net_salary}</td>
+            <td>${slip.issued_date}</td>
+          </tr>
+        `;
+      });
+    }
+  </script>
+</body>
+</html>

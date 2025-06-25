@@ -1,0 +1,310 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Performance Reviews</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    body.dark-mode {
+      background: #1e1e2f;
+      color: white;
+    }
+
+    .sidebar {
+      width: 250px;
+      background: #fff;
+      height: 100vh;
+      padding: 2rem 1rem;
+      position: fixed;
+      top: 0;
+      left: -250px;
+      overflow-y: auto;
+      z-index: 1000;
+      transition: left 0.3s ease;
+    }
+    .sidebar.active {
+      left: 0;
+    }
+
+    .sidebar h3 { margin-bottom: 1rem; }
+    .sidebar ul { list-style: none; }
+    .sidebar ul li {
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background 0.2s;
+    }
+    .sidebar ul li:hover { background: #e6e6e6; }
+
+    .main {
+      margin-left: 0;
+      padding: 1rem 2rem;
+      transition: margin-left 0.3s ease;
+    }
+    .sidebar.active ~ .main {
+      margin-left: 250px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #3c335a;
+      color: white;
+      padding: 1rem;
+      border-radius: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .topbar .left-icons i {
+      font-size: 1.25rem;
+      margin-right: 1rem;
+      cursor: pointer;
+    }
+
+    .card-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    .card-button {
+      background: rgb(213, 201, 255);
+      padding: 1.5rem;
+      text-align: center;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+    .card-button:hover {
+      background: #eaf1ff;
+      transform: scale(1.03);
+    }
+
+    .section {
+      margin-top: 2rem;
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      display: none;
+    }
+
+    .section h2 {
+      margin-bottom: 1rem;
+    }
+
+    input, textarea, button {
+      width: 100%;
+      padding: 0.75rem;
+      margin: 0.5rem 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 0.95rem;
+    }
+
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background: #2d323e;
+      color: white;
+    }
+
+    #message, #fetch_result, #delete_result {
+      margin-top: 0.5rem;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar" id="sidebar">
+    <h3>Navigation</h3>
+    <ul>
+      <li onclick="location.href='dashboard.html'">Dashboard</li>
+      <li onclick="location.href='attendance.html'">Attendance Report</li>
+      <li onclick="location.href='leave_requests.html'">Leave Request</li>
+      <li onclick="location.href='departments.html'">Departments</li>
+      <li onclick="location.href='salary_slips.html'">Salary Slips</li>
+      <li onclick="location.href='performance_reviews.html'">Performance Reviews</li>
+      <li onclick="location.href='notifications.html'">Notifications</li>
+      <li onclick="location.href='logs.html'">Audit Logs</li>
+    </ul>
+  </div>
+
+  <div class="main" id="mainContent">
+    <div class="topbar">
+      <div class="left-icons">
+        <i class="fa fa-bars" onclick="toggleSidebar()"></i>
+      </div>
+      <div class="right-text">
+        <strong>Performance Reviews</strong>
+      </div>
+    </div>
+
+    <div class="card-container">
+      <div class="card-button" onclick="showSection('createSection')">Create Review</div>
+      <div class="card-button" onclick="showSection('fetchSection')">Fetch Reviews by Employee ID</div>
+    </div>
+
+    <!-- Create Review -->
+    <div class="section" id="createSection">
+      <h3>Create Performance Review</h3>
+      <form onsubmit="createReview(event)">
+        <input id="employee_id" placeholder="Employee ID" required />
+        <input id="reviewer_id" placeholder="Reviewer ID" required />
+        <input type="date" id="review_date" required />
+        <input type="number" id="rating" min="1" max="10" placeholder="Rating (1–10)" required />
+        <textarea id="comments" placeholder="Comments" required></textarea>
+        <textarea id="goals_set" placeholder="Goals Set" required></textarea>
+        <button type="submit">Submit</button>
+      </form>
+      <div id="create_result"></div>
+    </div>
+
+    <!-- Fetch Reviews -->
+    <div class="section" id="fetchSection">
+      <h3>Fetch Reviews by Employee ID</h3>
+      <form onsubmit="fetchReviews(event)">
+        <input id="fetch_employee_id" placeholder="Employee ID" required />
+        <button type="submit">Fetch</button>
+      </form>
+      <div id="review_result"></div>
+    </div>
+  </div>
+
+  <script>
+    const BASE_URL = "http://127.0.0.1:8000";
+
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("active");
+    }
+
+    function showSection(sectionId) {
+      document.querySelectorAll(".section").forEach(sec => {
+        sec.style.display = sec.id === sectionId ? "block" : "none";
+      });
+    }
+
+    function getToken() {
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        alert("You must log in first.");
+        window.location.href = "login.html";
+      }
+      return `Bearer ${token}`;
+    }
+
+    async function createReview(e) {
+      e.preventDefault();
+
+      const payload = {
+        employee_id: document.getElementById("employee_id").value,
+        reviewer_id: document.getElementById("reviewer_id").value,
+        review_date: document.getElementById("review_date").value,
+        rating: parseInt(document.getElementById("rating").value),
+        comments: document.getElementById("comments").value,
+        goals_set: document.getElementById("goals_set").value,
+      };
+
+      const res = await fetch(`${BASE_URL}/performance-reviews/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: getToken()
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const result = document.getElementById("create_result");
+      if (res.ok) {
+        result.innerText = "✅ Review created successfully.";
+        result.style.color = "green";
+        e.target.reset();
+      } else {
+        const err = await res.json();
+        result.innerText = "❌ " + (err.detail || "Failed to create review.");
+        result.style.color = "red";
+      }
+    }
+
+    async function fetchReviews(e) {
+      e.preventDefault();
+      const employeeId = document.getElementById("fetch_employee_id").value;
+      const result = document.getElementById("review_result");
+
+      const res = await fetch(`${BASE_URL}/performance-reviews/${employeeId}`, {
+        headers: {
+          Authorization: getToken()
+        }
+      });
+
+      if (!res.ok) {
+        result.innerHTML = "<p style='color:red;'>No reviews found or error occurred.</p>";
+        return;
+      }
+
+      const data = await res.json();
+      if (data.length === 0) {
+        result.innerHTML = "<p>No reviews available for this employee.</p>";
+        return;
+      }
+
+      let html = `
+        <table>
+          <thead>
+            <tr>
+              <th>Review Date</th><th>Reviewer</th><th>Rating</th><th>Comments</th><th>Goals</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+      data.forEach(r => {
+        html += `
+          <tr>
+            <td>${r.review_date}</td>
+            <td>${r.reviewer_id}</td>
+            <td>${r.rating}</td>
+            <td>${r.comments}</td>
+            <td>${r.goals_set}</td>
+          </tr>
+        `;
+      });
+      html += "</tbody></table>";
+      result.innerHTML = html;
+    }
+  </script>
+</body>
+</html>

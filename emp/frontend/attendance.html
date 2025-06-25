@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Attendance</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f9;
+      color: #000;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 250px;
+      background: #fff;
+      height: 100vh;
+      padding: 2rem 1rem;
+      position: fixed;
+      top: 0;
+      left: 0;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease-in-out;
+      overflow-y: auto;
+      z-index: 1000;
+    }
+    .sidebar.active {
+      transform: translateX(0);
+    }
+    .sidebar h3 { margin-bottom: 1rem; }
+    .sidebar ul { list-style: none; }
+    .sidebar ul li {
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background 0.2s;
+    }
+    .sidebar ul li:hover { background: #e6e6e6; }
+
+    .main {
+      margin-left: 0;
+      flex-grow: 1;
+      width: 100%;
+      padding: 1rem;
+      transition: margin-left 0.3s;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #3c335a;
+      color: white;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+    .topbar .left-icons i {
+      font-size: 1.25rem;
+      margin-right: 1rem;
+      cursor: pointer;
+    }
+    .topbar .right-icons img {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .card-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .card-button {
+      background: rgb(213, 201, 255);
+      padding: 1.5rem;
+      text-align: center;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    .card-button:hover {
+      background: #eaf1ff;
+      transform: scale(1.03);
+    }
+
+    .section {
+      margin-top: 1rem;
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      display: none;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 0.75rem;
+      margin: 0.5rem 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    th, td {
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background: #2d323e;
+      color: white;
+    }
+
+    @media (min-width: 768px) {
+      .sidebar.active ~ .main {
+        margin-left: 250px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar" id="sidebar">
+    <h3>Navigation</h3>
+    <ul>
+      <li onclick="location.href='dashboard.html'">Dashboard</li>
+      <li onclick="location.href='attendance.html'">Attendance Report</li>
+      <li onclick="location.href='departments.html'">Departments</li>
+        <li onclick="location.href='leave_requests.html'">Leave Request</li>
+        <li onclick="location.href='salary_slips.html'">Salary Slips</li>
+        <li onclick="location.href='performance_reviews.html'">Performance Reviews</li>
+        <li onclick="location.href='notifications.html'">Notifications</li>
+        <li onclick="location.href='logs.html'">Audit Logs</li>
+        
+   
+    </ul>
+  </div>
+
+  <div class="main" id="mainContent">
+    <div class="topbar">
+      <div class="left-icons">
+        <i class="fa fa-bars" onclick="toggleSidebar()"></i>
+      </div>
+      <div class="right-text">
+        <strong>Attendance</strong>
+      </div>
+    </div>
+
+    <div class="card-container">
+      <div class="card-button" onclick="toggleSection('markAttendance')">Mark Attendance</div>
+      <div class="card-button" onclick="toggleSection('viewRecords'); getAttendance()">View Records</div>
+    </div>
+
+    <div class="section" id="markAttendance">
+      <h2>Mark Attendance</h2>
+      <form id="attendanceForm">
+        <input type="text" id="employee_id" placeholder="Employee ID" required />
+        <input type="date" id="date" required />
+        <select id="status" required>
+          <option value="">-- Select Status --</option>
+          <option value="Present">Present</option>
+          <option value="Absent">Absent</option>
+          <option value="Leave">Leave</option>
+        </select>
+        <input type="time" id="check_in_time" required />
+        <input type="time" id="check_out_time" required />
+        <button type="submit">Submit</button>
+        <div id="message"></div>
+      </form>
+    </div>
+
+    <div class="section" id="viewRecords">
+      <h2>Attendance Records</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>Employee ID</th><th>Date</th><th>Status</th><th>Check-In</th><th>Check-Out</th><th>Created At</th>
+          </tr>
+        </thead>
+        <tbody id="attendanceTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const BASE_URL = "http://127.0.0.1:8000";
+
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("active");
+    }
+
+    function toggleSection(id) {
+      document.querySelectorAll(".section").forEach(sec => {
+        sec.style.display = sec.id === id ? "block" : "none";
+      });
+    }
+
+    document.getElementById("attendanceForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const token = localStorage.getItem("access_token");
+      const payload = {
+        employee_id: document.getElementById("employee_id").value,
+        date: document.getElementById("date").value,
+        status: document.getElementById("status").value,
+        check_in_time: document.getElementById("check_in_time").value,
+        check_out_time: document.getElementById("check_out_time").value
+      };
+      const res = await fetch(`${BASE_URL}/attendance/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(payload)
+      });
+      const msg = document.getElementById("message");
+      msg.innerText = res.ok ? "Attendance marked!" : "Error marking attendance.";
+      msg.style.color = res.ok ? "green" : "red";
+      if (res.ok) document.getElementById("attendanceForm").reset();
+    });
+
+    async function getAttendance() {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch(`${BASE_URL}/attendance/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const table = document.getElementById("attendanceTable");
+      table.innerHTML = "";
+      const data = await res.json();
+      data.forEach(att => {
+        table.innerHTML += `<tr><td>${att.id}</td><td>${att.employee_id}</td><td>${att.date}</td><td>${att.status}</td><td>${att.check_in_time}</td><td>${att.check_out_time}</td><td>${att.created_at}</td></tr>`;
+      });
+    }
+  </script>
+</body>
+</html>

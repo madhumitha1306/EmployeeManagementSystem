@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Registration</title>
+
+  <!-- Font and Style -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f0f2f5;
+      margin: 0;
+      padding: 2rem;
+    }
+
+    .container {
+      background: #ffffff;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 2rem 2.5rem;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 1.5rem;
+    }
+
+    h4 {
+      margin-top: 1.5rem;
+      color: #007bff;
+      font-size: 1.1rem;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 0.3rem;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.75rem;
+      margin: 0.5rem 0 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      transition: border-color 0.2s;
+    }
+
+    input:focus {
+      border-color: #007bff;
+      outline: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 1rem;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    .link {
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    .link a {
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    .link a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Register New User</h2>
+    <form id="registerForm">
+      <h4>User Info</h4>
+      <input type="text" name="name" placeholder="Full Name" required />
+      <input type="email" name="email" placeholder="Email Address" required />
+      <input type="password" name="password" placeholder="Password" required />
+      <select name="role" required>
+        <option value="" disabled selected>Select Role</option>
+        <option value="admin">Admin</option>
+        <option value="employee">Employee</option>
+      </select>
+
+      <h4>Employee Info</h4>
+      <input type="text" name="team" placeholder="Team Name" required />
+      <input type="text" name="positions" placeholder="Position/Title" required />
+      <input type="date" name="hire_date" required />
+      <input type="text" name="place" placeholder="Location/Place" required />
+
+      <button type="submit">Register</button>
+
+      <div class="link">
+        <p>Already have an account? <a href="login.html">Login here</a></p>
+      </div>
+    </form>
+  </div>
+
+  <!-- JS -->
+  <script>
+    const form = document.getElementById('registerForm');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+      const data = {
+        name: formData.get("name"),
+        email: formData.get("email"),
+        password: formData.get("password"),
+        role: formData.get("role"),
+        employee: {
+          team: formData.get("team"),
+          positions: formData.get("positions"),
+          hire_date: formData.get("hire_date"),
+          place: formData.get("place")
+        }
+      };
+
+      try {
+        const res = await fetch("http://127.0.0.1:8000/users/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await res.json();
+
+        if (res.ok) {
+          alert(" Registration successful! Redirecting to login...");
+          window.location.href = "login.html";
+        } else {
+          alert(` Error: ${result.detail || "Something went wrong"}`);
+        }
+      } catch (err) {
+        alert("⚠️ Failed to register. Check console.");
+        console.error(err);
+      }
+    });
+  </script>
+</body>
+</html>
